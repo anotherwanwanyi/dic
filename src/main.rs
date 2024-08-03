@@ -13,8 +13,8 @@ fn repl() {
 }
 
 fn run(word: &str) {
-    let value = search(word).unwrap();
-    process(value);
+    let body = search(word).unwrap();
+    process(body);
 }
 
 fn main() {
