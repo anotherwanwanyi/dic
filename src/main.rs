@@ -20,8 +20,6 @@ fn run(word: &str) {
 fn main() {
     let cli = Cli::parse();
 
-    dbg!("word: {:?}", cli.word.as_deref());
-
     match cli.word.as_deref() {
         Some(word) => run(word),
         None => repl(),
