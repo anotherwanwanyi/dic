@@ -1,3 +1,4 @@
+use colored::{ColoredString, Colorize};
 use terminal_link::Link;
 use serde::{Serialize, Deserialize};
 
@@ -44,41 +45,10 @@ struct WordEntry {
     source_urls: Vec<String>,
 }
 
-enum Colors {
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    Default,
-}
-
-fn colored_value(value: String, color: Colors) -> String {
-   match color {
-        Colors::Black => stylish::ansi::format!("{:(fg=black)}", value),
-        Colors::Red => stylish::ansi::format!("{:(fg=red)}", value),
-        Colors::Green => stylish::ansi::format!("{:(fg=green)}", value),
-        Colors::Yellow => stylish::ansi::format!("{:(fg=yellow)}", value),
-        Colors::Blue => stylish::ansi::format!("{:(fg=blue)}", value),
-        Colors::Magenta => stylish::ansi::format!("{:(fg=magenta)}", value),
-        Colors::Cyan => stylish::ansi::format!("{:(fg=cyan)}", value),
-        Colors::White => stylish::ansi::format!("{:(fg=white)}", value),
-        Colors::Default => stylish::ansi::format!("{}", value),
-        // _ => "colored_value unimplemented".to_string()
-    } 
-}
-
-fn pretty_print(spaces: u32, name: &str, value: String, color: Colors) {
-    let space_str: String = " ".repeat(spaces as usize);
-
-    let pretty_name = stylish::ansi::format!("{}{:(fg=yellow)}", space_str, name);
-
-    let pretty_value = colored_value(value, color);
-
-    println!("{}{}", pretty_name, pretty_value);
+fn pretty_print(spaces: u32, name: &str, value: ColoredString) {
+    let space_string: String = " ".repeat(spaces as usize);
+    let pretty_name = name.yellow();
+    println!("{}{}{}", space_string, pretty_name, value);
 }
 
 fn format_license(license: &'_ License) -> Link<'_> {
@@ -86,53 +56,54 @@ fn format_license(license: &'_ License) -> Link<'_> {
 }
 
 fn print_word_entry(entry: WordEntry) {
-    pretty_print(0, "Word: ", entry.word, Colors::Blue);
+    let word = entry.word;
+    pretty_print(0, "Word: ", word.clone().blue().bold());
     if let Some(phonetic) = entry.phonetic {
-        pretty_print(0, "Phonetic: ", phonetic, Colors::Red);
+        pretty_print(0, "Phonetic: ", phonetic.red());
     }
     if !&entry.phonetics.is_empty() {
-        pretty_print(0, "Phonetics:", "".to_string(), Colors::Default);
+        pretty_print(0, "Phonetics:", "".to_string().white());
     }
     for phonetic in entry.phonetics {
-        pretty_print(2, "Text: ", phonetic.text, Colors::Red);
+        pretty_print(2, "Text: ", phonetic.text.red());
         if !phonetic.audio.is_empty() {
-            pretty_print(2, "Audio: ", phonetic.audio, Colors::Green);
+            pretty_print(2, "Audio: ", phonetic.audio.green());
         }
         if let Some(source_url) = phonetic.source_url {
-            pretty_print(2, "Source URL: ", source_url, Colors::Green);
+            pretty_print(2, "Source URL: ", source_url.green());
         }
         if let Some(license) = phonetic.license {
-            pretty_print(2, "License: ", format_license(&license).to_string(), Colors::Green);
+            pretty_print(2, "License: ", format_license(&license).to_string().green());
         }
         println!();
     }
 
-    pretty_print(0, "Meanings:", "".to_string(), Colors::Default);
+    pretty_print(0, "Meanings:", "".to_string().white());
     for meaning in entry.meanings {
-        pretty_print(2, "Part of Speech: ", meaning.part_of_speech, Colors::Magenta);
+        pretty_print(2, "Part of Speech: ", meaning.part_of_speech.magenta());
         for definition in meaning.definitions {
-            pretty_print(4, "Definition: ", definition.definition, Colors::Cyan);
+            pretty_print(4, "Definition: ", definition.definition.cyan());
             if let Some(example) = definition.example {
-                pretty_print(4, "Example: ", example, Colors::Cyan);
+                pretty_print(4, "Example: ", example.cyan());
             }
             if !definition.synonyms.is_empty() {
-                pretty_print(4, "Synonyms: ", definition.synonyms.join(", "), Colors::Cyan);
+                pretty_print(4, "Synonyms: ", definition.synonyms.join(", ").cyan());
             }
             if !definition.antonyms.is_empty() {
-                pretty_print(4, "Antonyms: ", definition.antonyms.join(", "), Colors::Cyan);
+                pretty_print(4, "Antonyms: ", definition.antonyms.join(", ").cyan());
             }
             println!();
         }
     }
 
     if let Some(license) = entry.license {
-        pretty_print(0, "License: ", format_license(&license).to_string(), Colors::Green);
+        pretty_print(0, "License: ", format_license(&license).to_string().green());
     }
 
     if !entry.source_urls.is_empty() {
-        pretty_print(0, "Source URLs:", "".to_string(), Colors::Default);
+        pretty_print(0, "Source URLs:", "".to_string().white());
         for url in entry.source_urls {
-            pretty_print(2, "", url, Colors::Green);
+            pretty_print(2, "", url.green());
         }
     }
 
