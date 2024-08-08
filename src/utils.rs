@@ -51,6 +51,12 @@ fn pretty_print(spaces: u32, name: &str, value: ColoredString) {
     println!("{}{}{}", space_string, pretty_name, value);
 }
 
+fn pretty_example(example: String, word: &str) -> String {
+    let pattern = format!(r"\b{}\b", regex::escape(word));
+    let re = regex::Regex::new(&pattern).unwrap();
+    re.replace_all(&example, format!("{}", word.red())).to_string()
+}
+
 fn format_license(license: &'_ License) -> Link<'_> {
     Link::new(license.name.as_str(), license.url.as_str())
 }
@@ -84,7 +90,8 @@ fn print_word_entry(entry: WordEntry) {
         for definition in meaning.definitions {
             pretty_print(4, "Definition: ", definition.definition.cyan());
             if let Some(example) = definition.example {
-                pretty_print(4, "Example: ", example.cyan());
+                let pretty_example = pretty_example(example, &word);
+                pretty_print(4, "Example: ", pretty_example.cyan());
             }
             if !definition.synonyms.is_empty() {
                 pretty_print(4, "Synonyms: ", definition.synonyms.join(", ").cyan());
