@@ -47,6 +47,13 @@ struct WordEntry {
     source_urls: Vec<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct ErrorMessage {
+    title: String,
+    message: String,
+    resolution: String,
+}
+
 fn pretty_print(handle: &mut BufWriter<StdoutLock<'static>>, spaces: u32, name: &str, value: ColoredString) {
     let space_string: String = " ".repeat(spaces as usize);
     let pretty_name = name.yellow();
@@ -133,7 +140,24 @@ fn print_word_entries(word_entries: Vec<WordEntry>) {
     }
 }
 
+fn print_error_message(error_message: ErrorMessage) {
+    let stdout = std::io::stdout();
+    let mut handle = BufWriter::new(stdout.lock());
+    let mut pretty_print = get_pretty_print(&mut handle);
+    pretty_print(0, "Title: ", error_message.title.red());
+    pretty_print(0, "Message: ", error_message.message.magenta());
+    pretty_print(0, "Resolution: ", error_message.resolution.green());
+    std::mem::drop(pretty_print);
+    handle.flush().unwrap();
+}
+
 pub fn process(body: String) {
-    let word_entries: Vec<WordEntry> = serde_json::from_str(body.as_str()).unwrap();
-    print_word_entries(word_entries)
+    let result: Result<Vec<WordEntry>, _> = serde_json::from_str(&body);
+    match result {
+        Ok(word_entries) => print_word_entries(word_entries),
+        Err(_) => {
+            let error_message: ErrorMessage = serde_json::from_str(&body).unwrap();
+            print_error_message(error_message)
+        }
+    }
 }
