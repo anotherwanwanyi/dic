@@ -1,3 +1,5 @@
+use std::io::{BufWriter, StdoutLock, Write};
+
 use colored::{ColoredString, Colorize};
 use terminal_link::Link;
 use serde::{Serialize, Deserialize};
@@ -45,10 +47,14 @@ struct WordEntry {
     source_urls: Vec<String>,
 }
 
-fn pretty_print(spaces: u32, name: &str, value: ColoredString) {
+fn pretty_print(handle: &mut BufWriter<StdoutLock<'static>>, spaces: u32, name: &str, value: ColoredString) {
     let space_string: String = " ".repeat(spaces as usize);
     let pretty_name = name.yellow();
-    println!("{}{}{}", space_string, pretty_name, value);
+    writeln!(handle, "{}{}{}", space_string, pretty_name, value).unwrap();
+}
+
+fn get_pretty_print<'a>(handle: &'a mut BufWriter<StdoutLock<'static>>) -> impl FnMut(u32, &'a str, ColoredString) + 'a{
+    |spaces, name, value| pretty_print(handle, spaces, name, value)
 }
 
 fn pretty_example(example: String, word: &str) -> String {
@@ -62,6 +68,9 @@ fn format_license(license: &'_ License) -> Link<'_> {
 }
 
 fn print_word_entry(entry: WordEntry) {
+    let stdout = std::io::stdout();
+    let mut handle = BufWriter::new(stdout.lock());
+    let mut pretty_print = get_pretty_print(&mut handle);
     let word = entry.word;
     pretty_print(0, "Word: ", word.clone().blue().bold());
     if let Some(phonetic) = entry.phonetic {
@@ -81,7 +90,7 @@ fn print_word_entry(entry: WordEntry) {
         if let Some(license) = phonetic.license {
             pretty_print(2, "License: ", format_license(&license).to_string().green());
         }
-        println!();
+        pretty_print(0, "", "".to_string().white());
     }
 
     pretty_print(0, "Meanings:", "".to_string().white());
@@ -99,7 +108,7 @@ fn print_word_entry(entry: WordEntry) {
             if !definition.antonyms.is_empty() {
                 pretty_print(4, "Antonyms: ", definition.antonyms.join(", ").cyan());
             }
-            println!();
+            pretty_print(0, "", "".to_string().white());
         }
     }
 
@@ -114,7 +123,9 @@ fn print_word_entry(entry: WordEntry) {
         }
     }
 
-    println!();
+    pretty_print(0, "", "".to_string().white());
+    std::mem::drop(pretty_print);
+    handle.flush().unwrap();
 }
 
 fn print_word_entries(word_entries: Vec<WordEntry>) {
