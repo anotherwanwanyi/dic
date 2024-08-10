@@ -97,7 +97,7 @@ fn print_word_entry(entry: WordEntry) {
     for meaning in entry.meanings {
         pretty_print(2, "Part of Speech: ", meaning.part_of_speech.magenta());
         for definition in meaning.definitions {
-            pretty_print(4, "Definition: ", definition.definition.cyan());
+            pretty_print(4, "Definition: ", definition.definition.blue());
             if let Some(example) = definition.example {
                 let pretty_example = pretty_example(example, &word);
                 pretty_print(4, "Example: ", pretty_example.cyan());
@@ -123,7 +123,6 @@ fn print_word_entry(entry: WordEntry) {
         }
     }
 
-    pretty_print(0, "", "".to_string().white());
     std::mem::drop(pretty_print);
     handle.flush().unwrap();
 }
