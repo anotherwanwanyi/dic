@@ -1,4 +1,4 @@
-use cli::Cli;
+use cli::{Cli, Commands, GlossaryCommands};
 use net::search;
 use utils::process;
 use repl::DicPrompt;
@@ -12,38 +12,6 @@ mod net;
 mod cli;
 mod utils;
 mod repl;
-
-fn run_command(command: String) {
-    let words: Vec<&str> = command.split_whitespace().collect();
-
-    match *words.as_slice() {
-        ["glossary", "add", word] => {
-            todo!()
-        }
-        ["glossary", "del", word] => {
-            todo!()
-        }
-        ["help", word] => {
-            match word {
-                "glossary" => println!("{}", word),
-                "history" => println!("{}", word),
-                "search" => println!("{}", word),
-                "help" => println!("{}", word),
-                _ => println!("{} not supported!", word),
-            }
-        }
-        ["help" ] => {
-            todo!()
-        }
-        ["history" ] => {
-            todo!()
-        }
-        ["search", word] | [ word ] => run(word),
-        _ => {
-            todo!()
-        }
-    }
-}
 
 fn repl() {
     let left_prompt = format!("{}", ">> ".blue().bold());
@@ -80,7 +48,6 @@ fn repl() {
     );
     let edit_mode = Box::new(Emacs::new(keybindings));
 
-
     let mut line_editor =
         Reedline::create()
             .with_history(history)
@@ -95,7 +62,22 @@ fn repl() {
         let sig = line_editor.read_line(&prompt).unwrap();
         match sig {
             Signal::Success(buffer) => {
-                run_command(buffer);
+                let line = buffer.trim();
+                if line.is_empty() {
+                    continue;
+                }
+                let mut args = shlex::split(line).ok_or("error: Invalid quoting").unwrap();
+                match &args[..] {
+                    [ word ] if !commands.contains(word) => search_word(word.to_string()),
+                    _ => {
+                        args.insert(0, "dic".to_owned());
+                        let maybe_cli = Cli::try_parse_from(args);
+                        match maybe_cli {
+                            Ok(cli) => parse_command(cli),
+                            Err(err) => err.print().expect("Error writing Error"),
+                        }
+                    }
+                }
             }
             Signal::CtrlD => {
                 println!("{}", "CTRL-D".green());
@@ -109,16 +91,31 @@ fn repl() {
     }
 }
 
-fn run(word: &str) {
+fn search_word(word: String) {
     let body = search(word).unwrap();
     process(body);
+}
+
+fn parse_command(cli: Cli) {
+    match cli.command {
+        Some(command) => {
+            match command {
+                Commands::History => println!("History"),
+                Commands::Search(arg) => search_word(arg.word),
+                Commands::Glossary(subcommand) => {
+                    match subcommand {
+                        GlossaryCommands::Add(arg) => println!("Add: {}", arg.word),
+                        GlossaryCommands::Del(arg) => println!("Del: {}", arg.word),
+                    }
+                }
+            }
+        }
+        None => repl(),
+    }
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    match cli.word.as_deref() {
-        Some(word) => run(word),
-        None => repl(),
-    }
+    parse_command(cli);
 }

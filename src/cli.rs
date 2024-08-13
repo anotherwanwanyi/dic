@@ -1,18 +1,29 @@
-use clap::Parser;
+use clap::{Args, Parser, Subcommand};
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(name = "dic")]
 #[command(version = "0.1.0")]
 #[command(about = "A REPL CLI Dictionary", long_about = None)]
 pub struct Cli {
-    pub word: Option<String>,
-    // #[arg(short, long, value_name = "WORD")]
-    // search: Option<String>,
+    #[command(subcommand)]
+    pub command: Option<Commands>,
 }
 
-// pub fn cli() {
-//     let cli = Cli::parse();
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    History,
+    #[command(subcommand)]
+    Glossary(GlossaryCommands),
+    Search(WordArg)
+}
 
-//     println!("word: {:?}", cli.word.as_deref());
-//     // println!("search: {:?}", cli.search.as_deref());
-// }
+#[derive(Subcommand, Debug)]
+pub enum GlossaryCommands {
+    Add(WordArg),
+    Del(WordArg)
+}
+
+#[derive(Args, Debug)]
+pub struct WordArg {
+    pub word: String,
+}
