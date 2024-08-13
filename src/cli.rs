@@ -17,20 +17,28 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    /// Show Search History
     History,
+    /// Search The Given Word
     Search(WordArg),
+    /// Glossary Related Commands
     #[command(subcommand)]
     Glossary(GlossaryCommands),
 }
 
 #[derive(Subcommand, Debug)]
 pub enum GlossaryCommands {
+    /// Show Words in the Glossary
+    Show,
+    /// Add the given Word into Glossary
     Add(WordArg),
-    Del(WordArg)
+    /// Delete the given Word from Glossary
+    Del(WordArg),
 }
 
 #[derive(Args, Debug)]
 pub struct WordArg {
+    /// word to be processed
     pub word: String,
 }
 
@@ -47,6 +55,7 @@ pub fn parse_command(cli: Cli) {
                 Commands::Search(arg) => search_word(arg.word),
                 Commands::Glossary(subcommand) => {
                     match subcommand {
+                        GlossaryCommands::Show => println!("Show"),
                         GlossaryCommands::Add(arg) => println!("Add: {}", arg.word),
                         GlossaryCommands::Del(arg) => println!("Del: {}", arg.word),
                     }
