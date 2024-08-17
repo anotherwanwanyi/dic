@@ -13,7 +13,7 @@ struct License {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct Phonetic {
-    text: String,
+    text: Option<String>,
     audio: String,
     source_url: Option<String>,
     license: Option<License>,
@@ -87,7 +87,9 @@ fn print_word_entry(entry: WordEntry) {
         pretty_print(0, "Phonetics:", "".to_string().white());
     }
     for phonetic in entry.phonetics {
-        pretty_print(2, "Text: ", phonetic.text.red());
+        if let Some(text) = phonetic.text {
+            pretty_print(2, "Text: ", text.red());
+        }
         if !phonetic.audio.is_empty() {
             pretty_print(2, "Audio: ", phonetic.audio.green());
         }
