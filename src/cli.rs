@@ -2,9 +2,8 @@ use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 use reedline::Signal;
 
-use crate::net::search;
-use crate::utils::process;
 use crate::repl::{create_line_editor, DicPrompt};
+use crate::utils::search_word;
 
 #[derive(Parser, Debug)]
 #[command(name = "dic")]
@@ -40,11 +39,6 @@ pub enum GlossaryCommands {
 pub struct WordArg {
     /// word to be processed
     pub word: String,
-}
-
-fn search_word(word: String) {
-    let body = search(word).unwrap();
-    process(body);
 }
 
 pub fn parse_command(cli: Cli) {

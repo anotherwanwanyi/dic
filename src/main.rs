@@ -3,6 +3,7 @@ use clap::Parser;
 
 mod net;
 mod cli;
+mod print;
 mod utils;
 mod repl;
 
