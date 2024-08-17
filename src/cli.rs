@@ -16,8 +16,6 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Show Search History
-    History,
     /// Search The Given Word
     Search(WordArg),
     /// Glossary Related Commands
@@ -45,7 +43,6 @@ pub fn parse_command(cli: Cli) {
     match cli.command {
         Some(command) => {
             match command {
-                Commands::History => println!("History"),
                 Commands::Search(arg) => search_word(arg.word),
                 Commands::Glossary(subcommand) => {
                     match subcommand {
@@ -66,7 +63,6 @@ fn repl() {
     let commands = vec![
         "help".into(),
         "search".into(),
-        "history".into(),
         "glossary".into(),
     ];
 
