@@ -156,8 +156,11 @@ pub fn process(body: String) {
     match result {
         Ok(word_entries) => print_word_entries(word_entries),
         Err(_) => {
-            let error_message: ErrorMessage = serde_json::from_str(&body).unwrap();
-            print_error_message(error_message)
+            let error_message: Result<ErrorMessage, _> = serde_json::from_str(&body);
+            match error_message {
+                Ok(error_message) => print_error_message(error_message),
+                Err(_) => { dbg!(body); },
+            }
         }
     }
 }
